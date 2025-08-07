@@ -1,0 +1,50 @@
+import sys
+import os
+from PyQt5.QtWidgets import QApplication, QSystemTrayIcon, QMenu
+from PyQt5.QtGui import QIcon
+from check_chapter import *
+
+class SystemTrayApp:
+    def __init__(self):
+        self.app = QApplication(sys.argv)
+
+        # Khởi tạo tray icon
+        self.icon_default = QIcon(os.path.join(os.path.dirname(__file__), 'comic.ico'))
+        self.icon_loading = QIcon(os.path.join(os.path.dirname(__file__), 'loading.ico'))
+        self.tray = QSystemTrayIcon(self.icon_default, self.app)
+        self.tray.setToolTip("Click để chạy script")
+
+        # Menu chuột phải (tùy chọn)
+        menu = QMenu()
+        setting = menu.addAction("Cài đặt truyện theo dõi")
+        setting.triggered.connect(self.setting)
+
+        menu.addSeparator()
+
+        quit_action = menu.addAction("Thoát")
+        quit_action.triggered.connect(self.exit_app)
+        self.tray.setContextMenu(menu)
+
+        # Sự kiện click chuột
+        self.tray.activated.connect(self.on_click)
+        main()
+
+        self.tray.show()
+        self.app.exec_()
+
+    def setting(self):
+        txt_path = os.path.join(os.path.dirname(__file__), "webtoon.txt")
+        os.startfile(txt_path)
+
+    def on_click(self, reason):
+        if reason == QSystemTrayIcon.Trigger:
+            self.tray.setIcon(self.icon_loading)
+            main()
+            self.tray.setIcon(self.icon_default)
+
+    def exit_app(self):
+        self.tray.hide()
+        self.app.quit()
+
+if __name__ == "__main__":
+    SystemTrayApp()
