@@ -3,17 +3,11 @@ import shutil
 import sqlite3
 import subprocess
 
-def check_link(url, chapter):
+def check_link(name, chapter, full_name):
     with sync_playwright() as p:
         browser = p.chromium.launch(
-            headless=False,
-            args=[
-                "--disable-blink-features=AutomationControlled",
-                "--disable-web-security",
-                "--no-sandbox",
-                "--disable-dev-shm-usage",
-                "--disable-gpu",
-            ]
+            headless=True,
+            args=["--disable-blink-features=AutomationControlled"]
         )
         context = browser.new_context(
             storage_state="state.json",
@@ -21,15 +15,28 @@ def check_link(url, chapter):
         )
 
         page = context.new_page()
-
+        url = name.replace("<>", chapter)
         page.goto(url)
-        for la in ["chapter", "chuong", "tap"]:
-            if (next := page.locator(f'xpath=//a[contains(@href, "{la}-{chapter}")]').count()) > 0:
-                # page.screenshot(path="screenshot.png")
-                browser.close()
-                return next
 
-    return 0
+        for i in (0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1):
+            newchapter = str(int(float(chapter) + i) if (float(chapter) + i).is_integer() else float(chapter) + i)
+
+            for la in ["chapter", "chuong", "tap"]:
+                # page.screenshot(path="screenshot.png")
+                if page.locator(f'xpath=//a[contains(@href, "{la}-{newchapter}")]').count() > 0:
+
+                    message = fr'''
+                    $BlogButton = New-BTButton -Content "Mở trang" -Arguments "{name.replace("<>", newchapter)}"
+                    New-BurntToastNotification -Text "Truyện mà bạn theo dõi đã có chapter mới", "{full_name} | Chapter {newchapter}" -Button $BlogButton -AppLogo "C:\Users\Hello\OneDrive\Code Tutorial\Python\Web_scrapping\webtoon\comic.ico"
+                    '''
+
+                    subprocess.run(["powershell", "-Command", message])
+                    break
+            else:
+                continue
+            break
+
+        browser.close()
 
 def check_history():
     history_path = r"C:\Users\Hello\AppData\Local\Microsoft\Edge\User Data\Default\History"
@@ -41,21 +48,25 @@ def check_history():
 
     with open(r"C:\Users\Hello\OneDrive\Code Tutorial\Python\Web_scrapping\webtoon\webtoon.txt", mode="r", encoding="utf-8") as f:
         comics = [i.split(maxsplit=2) for i in f.read().strip().split("\n")]
+        new_comics = []
         for i in range(len(comics)):
             name, chapter, full_name = comics[i]
             result = True
 
             while result:
-                chapter = str(int(chapter) + 1)
-                url = name.replace("<>", chapter)
+                for i in (0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1):
+                    newchapter = str(int(float(chapter) + i) if (float(chapter) + i).is_integer() else float(chapter) + i)
+                    url = name.replace("<>", newchapter)
 
-                cursor.execute("SELECT url, title FROM urls WHERE url = ?", (url,))
-                result = cursor.fetchone()
+                    cursor.execute("SELECT url, title FROM urls WHERE url = ?", (url,))
+                    result = cursor.fetchone()
+                    if result: break
+                chapter = newchapter
 
-            comics[i] = [name, str(int(chapter) - 1), full_name]
+            new_comics.append([name, str(int(float(chapter) - 1) if (float(chapter) - 1).is_integer() else float(chapter) - 1), full_name])
 
     with open(r"C:\Users\Hello\OneDrive\Code Tutorial\Python\Web_scrapping\webtoon\webtoon.txt", mode="w", encoding="utf-8") as f:
-        f.write("\n".join(" ".join(i) for i in comics))
+        f.write("\n".join(" ".join(i) for i in new_comics))
 
     conn.close()
 
@@ -64,18 +75,12 @@ def main():
     with open(r"C:\Users\Hello\OneDrive\Code Tutorial\Python\Web_scrapping\webtoon\webtoon.txt", mode="r", encoding="utf-8") as f:
         comics = [i.split(maxsplit=2) for i in f.read().strip().split("\n")]
         for name, chapter, full_name in comics:
-            url = name.replace("<>", chapter)
-            chapter = str(int(chapter) + 1)
-
-            if check_link(url, chapter):
+            while True:
                 try:
-                    message = fr'''
-                    $BlogButton = New-BTButton -Content "Mở trang" -Arguments "{name.replace('<>', chapter)}"
-                    New-BurntToastNotification -Text "Truyện mà bạn theo dõi đã có chapter mới", "{full_name} | Chapter {chapter}" -Button $BlogButton -AppLogo "C:\Users\Hello\OneDrive\Code Tutorial\Python\Web_scrapping\webtoon\comic.ico"
-                    '''
-
-                    subprocess.run(["powershell", "-Command", message])
-                except: pass
+                    check_link(name, chapter, full_name)
+                except:
+                    continue
+                break
 
 if __name__ == "__main__":
     main()
