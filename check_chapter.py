@@ -152,6 +152,7 @@ def check_history():
     conn.close()
 
 def main():
+    check_history()
     if check_login():
         print("Chưa đăng nhập, tiến hành đăng nhập...")
         login()
