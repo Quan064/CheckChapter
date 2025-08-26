@@ -23,12 +23,13 @@ def check_link(name, chapter, full_name):
             newchapter = str(int(float(chapter) + i) if (float(chapter) + i).is_integer() else float(chapter) + i)
 
             for la in ["chapter", "chuong", "tap"]:
+                la_ = {"chapter": "Chapter", "chuong": "Chương", "tap": "Tập"}[la]
                 # page.screenshot(path="screenshot.png")
                 if page.locator(f'xpath=//a[contains(@href, "{la}-{newchapter}")]').count() > 0:
 
                     message = fr'''
                     $BlogButton = New-BTButton -Content "Mở trang" -Arguments "{name.replace("<>", newchapter)}"
-                    New-BurntToastNotification -Text "Truyện mà bạn theo dõi đã có chapter mới", "{full_name} | Chapter {newchapter}" -Button $BlogButton -AppLogo "C:\Users\Hello\OneDrive\Code Tutorial\Python\Web_scrapping\webtoon\comic.ico"
+                    New-BurntToastNotification -Text "Truyện mà bạn theo dõi đã có chapter mới", "{full_name} | {la_} {newchapter}" -Button $BlogButton -AppLogo "C:\Users\Hello\OneDrive\Code Tutorial\Python\Web_scrapping\webtoon\comic.ico"
                     '''
 
                     subprocess.run(["powershell", "-Command", message])
