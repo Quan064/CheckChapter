@@ -163,12 +163,9 @@ def main():
     with open(r"C:\Users\Hello\OneDrive\Code Tutorial\Python\Web_scrapping\webtoon\webtoon.txt", mode="r", encoding="utf-8") as f:
         comics = [i.split(maxsplit=2) for i in f.read().strip().split("\n")]
         for name, chapter, full_name in comics:
-            while True:
-                try:
-                    check_link(name, chapter, full_name)
-                except:
-                    continue
-                break
+            try:
+                check_link(name, chapter, full_name)
+            except: pass
 
 if __name__ == "__main__":
     main()
